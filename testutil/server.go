@@ -29,7 +29,7 @@ import (
 
 	"github.com/hashicorp/consul/testutil/retry"
 	"github.com/hashicorp/go-cleanhttp"
-	"github.com/hashicorp/go-uuid"
+    "github.com/hashicorp/go-uuid"
 	"github.com/pkg/errors"
 )
 
@@ -191,6 +191,12 @@ func NewTestServerConfig(cb ServerConfigCallback) (*TestServer, error) {
 // configuring or starting the server, the server will NOT be running when the
 // function returns (thus you do not need to stop it).
 func NewTestServerConfigT(t *testing.T, cb ServerConfigCallback) (*TestServer, error) {
+	path, err := exec.LookPath("consul")
+	if err != nil || path == "" {
+		return nil, fmt.Errorf("consul not found on $PATH - download and install " +
+			"consul or skip this test")
+	}
+
 	var server *TestServer
 	retry.Run(t, func(r *retry.R) {
 		var err error
@@ -204,12 +210,6 @@ func NewTestServerConfigT(t *testing.T, cb ServerConfigCallback) (*TestServer, e
 
 // newTestServerConfigT is the internal helper for NewTestServerConfigT.
 func newTestServerConfigT(t *testing.T, cb ServerConfigCallback) (*TestServer, error) {
-	path, err := exec.LookPath("consul")
-	if err != nil || path == "" {
-		return nil, fmt.Errorf("consul not found on $PATH - download and install " +
-			"consul or skip this test")
-	}
-
 	tmpdir := TempDir(t, "consul")
 	cfg := defaultServerConfig()
 	cfg.DataDir = filepath.Join(tmpdir, "data")
